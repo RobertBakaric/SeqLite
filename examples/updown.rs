@@ -52,9 +52,11 @@ Testing Upload/Download !!
 fn main(){
 
     let cli = parse_cli();
-    let sdb = SeqLiteDb::new(cli.value_of("fformat").unwrap());
+    println!("in:  {}",cli.value_of("input").unwrap());
+    let sdb = SeqLiteDb::new(cli.value_of("fformat").unwrap())
+        .read(cli.value_of("input").unwrap());
+//        .write(cli.value_of("output").unwrap());
 
     println!("Format:  {}",sdb.get_fmt());
 
-    
 }
