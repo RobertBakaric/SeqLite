@@ -1,4 +1,3 @@
-
 use snafu::{ErrorCompat, ResultExt, Snafu};
 
 use std::{

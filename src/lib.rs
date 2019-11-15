@@ -1,11 +1,12 @@
-
+mod utils;
 use std::collections::HashMap;
-use std::io::{self, prelude::*, stdout, Write,  BufReader, BufWriter};
-
+use utils::error::Error;
+use std::io::{self, prelude::*, stdout, Write, Read, BufReader, BufWriter};
+use std::fs::File;
 
 
 #[derive(Debug)]
-struct SeqLite  {
+pub struct SeqLiteDb  {
     head:   Vec<String>,  // Strings, str
     id:     Vec<String>,    // Strings, str
     seq:    Vec<u8>,     // u8 bitvec
@@ -14,14 +15,21 @@ struct SeqLite  {
     mindex: Vec<usize>,   // where do seqs start
     findex: Vec<usize>,  // on which seq does the next file starts
     format: String,
+    getter: String,
 }
 
 
-impl  SeqLite
+impl  SeqLiteDb
     //where T: Hash + Eq,
 {
     pub fn new (rtype: &str)-> Self{
-        SeqLite{
+
+        let typ : String   = match rtype {
+            "fasta" | "fastq" | "raw" => rtype.to_string(),
+             _ => panic!("File format {} not supported !",rtype ),
+        };
+
+        SeqLiteDb{
             head: Vec::new(),
             id: Vec::new(),
             seq: Vec::new(),
@@ -29,10 +37,23 @@ impl  SeqLite
             rindex: HashMap::new(),
             mindex: Vec::new(),
             findex: Vec::new(),
-            format: rtype.to_string(),
+            format: typ,
+            getter: "".to_string()
         }
     }
 
+    // getters
+
+    pub fn get_fmt(&self)-> String{
+        self.format.clone()
+    }
+//    pub fn get_seqset(&self)-> Vec<u8>{
+//        self.seq.clone()
+//    }
+
+    // setters
+
+    // internal
     fn upload_fasta<R: BufRead>(&mut self,  reader:  R ) -> Result<bool,Error> {
 
         // check if fasta
@@ -110,57 +131,86 @@ impl  SeqLite
 
 }
 
+/**
 
+# Design :
+
+let sdb =  SeqLite::new("fastq");
+
+// constructor
+sdb.read("file.fq|stdin").compress("lzt");
+
+let table = sdb.select("rand|list").get("raw|table");
+
+sdb.dump("file.dmp");
+
+sdb.write("file.out|stdout");
+
+**/
 
 
 
 // Implement traits
 
 pub trait IO{
-    fn read (mut self, file: &str)-> Self;
-    fn write (mut self, file: &str)-> Self;
+    fn read  (mut self, file: &str)-> Self;
+    //fn write (mut self, file: &str)-> Self;
 }
 
 
 
-impl IO for SeqLite{
+impl IO for SeqLiteDb{
     fn read(mut self, file: &str)->Self{
 
-        let mut stdio;
-        let mut file;
+        let mut stdin;
+        let mut fin;
         let read: &mut dyn Read = match file {
             "stdin" => {
-                stdio = io::stdin();
-                &mut stdio
+                stdin = io::stdin();
+                &mut stdin
             },
             _       => {
-                file = File::open(file).expect("Error opening input file");
-                &mut file
+                fin = File::open(file).expect("Error opening input file");
+                &mut fin
             }
         };
 
         let reader = BufReader::new(read);
 
-        match self.rtype {
+        match &self.format[..] {
             "fasta" => {
-                self.upload_fasta(reader)?;
+                if let  Ok(true) = self.upload_fasta(reader) {
+                    println!("File {} uploaded !", file);
+                };
 
             },
             "fastq" => {
+                if let Ok(true) = self.upload_fasta(reader) {
+                    println!("File {} uploaded !", file);
+                };
 
             },
             "raw"   => {
-
+                if let Ok(true) = self.upload_fasta(reader) {
+                    println!("File {} uploaded !", file);
+                };
             }
+            _        => {panic!("Format {} not supported !", self.format)}
         }
 
+        self
+
+
+
     }
+/*
     fn write(mut self,file: &str) -> Self{
         match file {
             "stdout" => {},
             _   => {}
         }
     }
+    */
 }
 
 
