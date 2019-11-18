@@ -53,10 +53,18 @@ fn main(){
 
     let cli = parse_cli();
     println!("in:  {}",cli.value_of("input").unwrap());
-    let sdb = SeqLiteDb::new(cli.value_of("fformat").unwrap())
+    let mut sdb = SeqLiteDb::new(cli.value_of("fformat").unwrap())
         .read(cli.value_of("input").unwrap());
-//        .write(cli.value_of("output").unwrap());
 
-    println!("Format:  {}",sdb.get_fmt());
+    sdb.set_llen(60);
+
+
+
+
+    if let Ok(true) = sdb.dump(cli.value_of("output").unwrap()){
+        println!("Done !");
+    };
+
+    //println!("Format:  {}",sdb.get_fmt());
 
 }
