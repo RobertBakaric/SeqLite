@@ -6,7 +6,7 @@ use std::fs::File;
 use utils::io::{make_reader, make_writer};
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SeqLiteDb  {
     head:   Vec<String>,  // Strings, str
     id:     Vec<String>,    // Strings, str
@@ -58,7 +58,7 @@ impl  SeqLiteDb
 
     // setters
 
-    pub fn set_llen(&mut self, llen: usize)-> &mut Self{
+    pub fn set_llen(mut self, llen: usize)-> Self{
         self.llen = llen;
         self
     }
@@ -66,7 +66,7 @@ impl  SeqLiteDb
 
 
     // internal
-    fn upload_fasta<R: BufRead>(&mut self,  reader:  R ) -> Result<bool,Error> {
+    fn fasta_up<R: BufRead>(&mut self,  reader:  R ) -> Result<bool,Error> {
 
         // check if fasta
         let mut i= self.head.len();
@@ -88,7 +88,7 @@ impl  SeqLiteDb
         Ok(true)
     }
 
-    fn upload_fastq<R: BufRead>(&mut self,  reader:  R ) -> Result<bool,Error> {
+    fn fastq_up<R: BufRead>(&mut self,  reader:  R ) -> Result<bool,Error> {
 
         // check if fastq
 
@@ -117,7 +117,7 @@ impl  SeqLiteDb
         Ok(true)
     }
 
-    fn upload_txt<R: BufRead>(&mut self,  reader:  R ) -> Result<bool,Error> {
+    fn txt_up<R: BufRead>(&mut self,  reader:  R ) -> Result<bool,Error> {
 
         // check if rawlist
 
@@ -129,7 +129,7 @@ impl  SeqLiteDb
         Ok(true)
     }
 
-    fn upload_bin<R: BufRead>(&mut self,  reader:  R ) -> Result<bool,Error> {
+    fn bin_up<R: BufRead>(&mut self,  reader:  R ) -> Result<bool,Error> {
 
         // check if bin
 
@@ -140,9 +140,9 @@ impl  SeqLiteDb
         Ok(true)
     }
 
-    fn download_fasta <W: Write>(&self, mut writer:  W, pos: Vec<usize> ) -> Result<bool,Error> {
+    fn fasta_dw<W: Write> (&self, mut writer:  W)  -> Result<bool,Error>  {
 
-        for i in 0..pos.len()-1 {
+        for i in 0..self.qres.len()-1 {
             writeln!(writer, "{}", self.head[i]).unwrap();
             let mut en = if self.mindex[i] + self.llen < self.mindex[i+1] {
                 self.mindex[i] + self.llen
@@ -161,19 +161,28 @@ impl  SeqLiteDb
                 };
             }
         }
-
         writer.flush().unwrap();
+        Ok(true)
+    }
 
+    fn fastq_dw<W: Write> (&self, mut writer:  W)   -> Result<bool,Error>  {
+
+        for i in 0..self.qres.len()-1 {
+            writeln!(writer, "{}", self.head[i]).unwrap();
+            let mut en = self.mindex[i+1];
+            let mut st = self.mindex[i];
+            writer.write_all(&self.seq[st..en]).unwrap();
+            writer.write(b"\n+\n").unwrap();
+            writer.write_all(&self.qual[st..en]).unwrap();
+            writer.write(b"\n").unwrap();
+        }
         Ok(true)
 
     }
 
-    fn download_fastq () {
+    fn txt_dw<W: Write>  (&self, mut writer:  W)  -> Result<bool,Error> {
 
-    }
-
-    fn download_txt () {
-
+        Ok(true)
     }
 
 
@@ -186,7 +195,7 @@ impl  SeqLiteDb
 let sdb =  SeqLite::new("fastq");
 
 // constructor
-sdb.read("file.fq|stdin").compress("lzt");
+sdb.upload("file.fq|stdin").compress("lzt");
 
 let table = sdb.select("rand|list").get("raw|table");
 
@@ -201,37 +210,36 @@ sdb.write("file.out|stdout");
 // Implement traits
 
 pub trait IO{
-    fn read  (mut self, file: &str)-> Self;
-    fn write (mut self, file: &str)-> Self;
-    fn dump  (self,    file: &str) -> Result<bool, Error>;
+    fn upload  (mut self, file: &str)-> Self;
+    fn download (&self, file: &str)-> Result<bool,Error>;
 }
 
 
 
 impl IO for SeqLiteDb{
 
-    fn read(mut self, file: &str)->Self{
+    fn upload(mut self, file: &str)->Self{
 
         let mut reader = make_reader(file);
 
         match &self.format[..] {
             "fasta" => {
 
-                if let  Ok(true) = self.upload_fasta(reader) {
+                if let  Ok(true) = self.fasta_up(reader) {
                     println!("File {} uploaded !", file);
                 };
 
             },
             "fastq" => {
 
-                if let Ok(true) = self.upload_fastq(reader) {
+                if let Ok(true) = self.fastq_up(reader) {
                     println!("File {} uploaded !", file);
                 };
 
             },
             "raw"   => {
 
-                if let Ok(true) = self.upload_txt(reader) {
+                if let Ok(true) = self.txt_up(reader) {
                     println!("File {} uploaded !", file);
                 };
 
@@ -242,9 +250,9 @@ impl IO for SeqLiteDb{
         self
 
     }
+/*
+    fn dump (mut self,    file: &str) -> Self {
 
-    fn dump (self,    file: &str) -> Result<bool, Error> {
-        let mut writer = make_writer(file);
         match &self.format[..] {
             "fasta" => {
                 let mut all = vec![0; self.id.len()];
@@ -252,12 +260,10 @@ impl IO for SeqLiteDb{
                     all[i] = i;
                 }
 
-                if let  Ok(true) = self.download_fasta(writer, all) {
-                    println!("Data downloaded into {}  !", file);
-                };
+                self.write(file, all);
 
             },
-/*            "fastq" => {
+            "fastq" => {
 
                 if let Ok(true) = self.upload_fastq(reader) {
                     println!("File {} uploaded !", file);
@@ -270,41 +276,43 @@ impl IO for SeqLiteDb{
                     println!("File {} uploaded !", file);
                 };
 
-            } */
+            }
             _      => {panic!("Format {} not supported !", self.format)}
         }
 
-        Ok(true)
+        self
     }
-
-    fn write(mut self, file: &str) -> Self{
+*/
+    fn download(&self, file: &str) -> Result<bool,Error>{
 
         let mut writer = make_writer(file);
+
         match &self.format[..] {
             "fasta" => {
+                //self.fasta_dw(writer);
 
-                if let  Ok(true) = self.download_fasta(writer,self.qres) {
-                    println!("Data downloaded into {}  !", file);
+                if let  Ok(true) = self.fasta_dw(writer) {
+                    println!("Data downloaded into {} [fa]  !", file);
                 };
 
             },
             "fastq" => {
-
-                if let Ok(true) = self.download_fastq(writer) {
-                    println!("File {} uploaded !", file);
+/*
+                if let Ok(true) = self.fastq_dw(writer) {
+                    println!("Data downloaded into {} [fq] !", file);
                 };
-
+*/
             },
             "raw"   => {
 
-                if let Ok(true) = self.download_txt(writer) {
-                    println!("File {} uploaded !", file);
+                if let Ok(true) = self.txt_dw(writer) {
+                    println!("Data downloaded into {} [txt] !", file);
                 };
 
             }
             _        => {panic!("Format {} not supported !", self.format)}
         }
-        self
+        Ok(true)
     }
 
 
@@ -314,8 +322,16 @@ impl IO for SeqLiteDb{
 //Query trait
 
 pub trait Query {
-    fn qwhere <F: Fn> (mut self, condition: F) -> Self;
-    fn qmatch (mut self, pattern: String) -> Self;
+    // select conditions:
+    //  a) rand(10)
+    //  b) max(len|lcp)
+    //  c) min(len|lcp)
+    //  d) pos_list(1,2,52,5,33,67,322,4,56)
+    //  e) id_list(brca, M12, ssb, TP53)
+    //  f) regex(regEx(.*?)\t)
+    fn select (&mut self, condition: String)-> &mut Self ;
+    fn get (&mut self) -> &mut Self;
+//    fn parse(exp: String)-> Result<(String,Vec<usize>),Error>;
 }
 
 // Shrink trait
@@ -323,14 +339,40 @@ pub trait Query {
 
 impl Query for SeqLiteDb {
 
-    fn qwhere () -> Self {
+    fn select (&mut self, condition: String) -> &mut Self {
+
+        match &condition[..] {
+            "all" => {
+                let mut all = vec![0; self.id.len()];
+                for i in 0..self.id.len() {
+                    all[i] = i;
+                }
+                self.qres = all;
+            },
+            _     => {
+                //let (f,val): (String,Vec<usize>) = self.parse("all(xx)".to_string()).unwrap();
+            }
+
+
+        }
+
+
+        self
 
     }
-    fn qmatch {} -> Self {
-        
+    fn get (&mut self) ->  &mut Self {
+
+        self
+
+    }
+    /*
+    fn parse(exp: String)-> Result<(String,Vec<usize>),Error>{
+
+        Ok(("all".to_string(), Vec::new()))
+
     }
 
-
+*/
 }
 
 
