@@ -18,6 +18,7 @@ pub struct SeqLiteDb  {
     format: String,
     llen: usize,
     getter: String,
+    qres: Vec<usize>
 }
 
 
@@ -36,12 +37,13 @@ impl  SeqLiteDb
             id: Vec::new(),
             seq: Vec::new(),
             qual: Vec::new(),
-            rindex: HashMap::new(),
+            rindex: HashMap::new(),  // replace with the faser one
             mindex: Vec::new(),
             findex: Vec::new(),
             format: typ,
             llen: 80,
-            getter: "".to_string()
+            getter: "".to_string(),
+            qres: Vec::new(),
         }
     }
 
@@ -56,8 +58,9 @@ impl  SeqLiteDb
 
     // setters
 
-    pub fn set_llen(&mut self, llen: usize){
+    pub fn set_llen(&mut self, llen: usize)-> &mut Self{
         self.llen = llen;
+        self
     }
 
 
@@ -116,7 +119,7 @@ impl  SeqLiteDb
 
     fn upload_txt<R: BufRead>(&mut self,  reader:  R ) -> Result<bool,Error> {
 
-        // check if raw
+        // check if rawlist
 
         for line in reader.lines() {
             let str = line.unwrap();
@@ -137,7 +140,39 @@ impl  SeqLiteDb
         Ok(true)
     }
 
-    fn download_fasta () {
+    fn download_fasta <W: Write>(&self, mut writer:  W, pos: Vec<usize> ) -> Result<bool,Error> {
+
+        for i in 0..pos.len()-1 {
+            writeln!(writer, "{}", self.head[i]).unwrap();
+            let mut en = if self.mindex[i] + self.llen < self.mindex[i+1] {
+                self.mindex[i] + self.llen
+            }else{
+                self.mindex[i+1]
+            };
+            let mut st = self.mindex[i];
+            while st <  self.mindex[i+1] {
+                writer.write_all(&self.seq[st..en]).unwrap();  // need to fx this
+                writer.write(b"\n").unwrap();                  // need to fx this
+                st = en;
+                en = if st + self.llen < self.mindex[i+1] {
+                    st + self.llen
+                }else{
+                    self.mindex[i+1]
+                };
+            }
+        }
+
+        writer.flush().unwrap();
+
+        Ok(true)
+
+    }
+
+    fn download_fastq () {
+
+    }
+
+    fn download_txt () {
 
     }
 
@@ -167,7 +202,8 @@ sdb.write("file.out|stdout");
 
 pub trait IO{
     fn read  (mut self, file: &str)-> Self;
-    //fn write (mut self, file: &str)-> Self;
+    fn write (mut self, file: &str)-> Self;
+    fn dump  (self,    file: &str) -> Result<bool, Error>;
 }
 
 
@@ -206,17 +242,22 @@ impl IO for SeqLiteDb{
         self
 
     }
-/*
-    fn write(mut self, file: &str) -> Self{
+
+    fn dump (self,    file: &str) -> Result<bool, Error> {
+        let mut writer = make_writer(file);
         match &self.format[..] {
             "fasta" => {
+                let mut all = vec![0; self.id.len()];
+                for i in 0..self.id.len() {
+                    all[i] = i;
+                }
 
-                if let  Ok(true) = self.upload_fasta(reader) {
-                    println!("File {} uploaded !", file);
+                if let  Ok(true) = self.download_fasta(writer, all) {
+                    println!("Data downloaded into {}  !", file);
                 };
 
             },
-            "fastq" => {
+/*            "fastq" => {
 
                 if let Ok(true) = self.upload_fastq(reader) {
                     println!("File {} uploaded !", file);
@@ -229,30 +270,68 @@ impl IO for SeqLiteDb{
                     println!("File {} uploaded !", file);
                 };
 
+            } */
+            _      => {panic!("Format {} not supported !", self.format)}
+        }
+
+        Ok(true)
+    }
+
+    fn write(mut self, file: &str) -> Self{
+
+        let mut writer = make_writer(file);
+        match &self.format[..] {
+            "fasta" => {
+
+                if let  Ok(true) = self.download_fasta(writer,self.qres) {
+                    println!("Data downloaded into {}  !", file);
+                };
+
+            },
+            "fastq" => {
+
+                if let Ok(true) = self.download_fastq(writer) {
+                    println!("File {} uploaded !", file);
+                };
+
+            },
+            "raw"   => {
+
+                if let Ok(true) = self.download_txt(writer) {
+                    println!("File {} uploaded !", file);
+                };
+
             }
             _        => {panic!("Format {} not supported !", self.format)}
         }
+        self
     }
-*/
+
+
 }
 
 
-
-// make an the object
-
-
-
-// implement the objects
-
-
-// IO trait
-
 //Query trait
+
+pub trait Query {
+    fn qwhere <F: Fn> (mut self, condition: F) -> Self;
+    fn qmatch (mut self, pattern: String) -> Self;
+}
 
 // Shrink trait
 
 
+impl Query for SeqLiteDb {
 
+    fn qwhere () -> Self {
+
+    }
+    fn qmatch {} -> Self {
+        
+    }
+
+
+}
 
 
 #[cfg(test)]

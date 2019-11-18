@@ -1,58 +1,31 @@
-
 use std::io::{self, prelude::*, stdout, Write, Read, BufReader, BufWriter};
 use std::fs::File;
 
 pub fn make_reader(file: &str)-> BufReader<Box< dyn Read >> {
 
-    let reader = match file {
+    let tmp : Box<dyn Read> = match file {
         "stdin" => {
-            let tmp : Box<dyn Read> = Box::new(io::stdin());
-            BufReader::new(tmp)
+            Box::new(io::stdin())
         },
         _       => {
-            let tmp : Box<dyn Read> = Box::new(File::open(file)
-                .expect(&(format!("Error opening {} file",file))));
-            BufReader::new(tmp)
+            Box::new(File::open(file)
+                .expect(&(format!("Error opening {} file",file))))
         }
     };
-
-    reader
+    BufReader::new(tmp)
 }
-
 
 
 pub fn make_writer (file: &str)-> BufWriter<Box<dyn Write>> {
 
-    let writer = match file {
-        "stdin" => {
-            let tmp : Box<dyn Write> = Box::new(io::stdout());
-            BufWriter::new(tmp)
-        },
-        _       => {
-            let tmp : Box<dyn Write> = Box::new(File::open(file)
-                .expect(&(format!("Error opening {} file",file))));
-            BufWriter::new(tmp)
-        }
-    };
-
-    writer
-/*
-    let mut stdout;
-    let mut fout;
-    let write: &mut dyn Write = match file {
+    let tmp : Box<dyn Write> = match file {
         "stdout" => {
-            stdout = io::stdout();
-            &mut stdout
+            Box::new(io::stdout())
         },
         _       => {
-            fout = File::open(file).expect(&(format!("Error writting to {} file",file)));
-            &mut fout
+            Box::new(File::create(file)
+                .expect(&(format!("Error opening {} file",file))))
         }
     };
-
-    let mut writer = BufWriter::new(write);
-
-    writer
-
-    */
+    BufWriter::new(tmp)
 }
