@@ -1,4 +1,11 @@
 mod utils;
+mod cmds;
+mod uldl;
+
+
+
+
+
 use std::collections::HashMap;
 use utils::error::Error;
 use std::io::{self, prelude::*, stdout, Write, Read, BufReader, BufWriter};
@@ -65,28 +72,8 @@ impl  SeqLiteDb
 
 
 
-    // internal
-    fn fasta_up<R: BufRead>(&mut self,  reader:  R ) -> Result<bool,Error> {
+    // internal  // Move IO functions to seperate modules
 
-        // check if fasta
-        let mut i= self.head.len();
-        self.findex.push(i);  // not sure what this is about...
-
-        for line in reader.lines() {
-            let str = line.unwrap();
-            if &str[..1] == ">" {
-                self.head.push(str.clone());
-                let id = (&str[1..str.find(" ").unwrap_or_else(|| str.len())]).to_string();
-                self.id.push(id.clone());
-                self.rindex.entry(id).or_insert(Vec::new()).push(i);
-                self.mindex.push(self.seq.len());
-                i=i+1;
-                continue;
-            }
-            self.seq.extend(str.as_bytes());
-        }
-        Ok(true)
-    }
 
     fn fastq_up<R: BufRead>(&mut self,  reader:  R ) -> Result<bool,Error> {
 
@@ -139,25 +126,30 @@ impl  SeqLiteDb
         }
         Ok(true)
     }
-
+    // move this into fasta.rs
     fn fasta_dw<W: Write> (&self, mut writer:  W)  -> Result<bool,Error>  {
 
-        for i in 0..self.qres.len()-1 {
-            writeln!(writer, "{}", self.head[i]).unwrap();
-            let mut en = if self.mindex[i] + self.llen < self.mindex[i+1] {
-                self.mindex[i] + self.llen
+        for pos in self.qres.clone().into_iter() {
+            writeln!(writer, "{}", self.head[pos]).unwrap();
+            let lindex = if pos < self.mindex.len()-1{
+                self.mindex[pos+1]
             }else{
-                self.mindex[i+1]
+                self.seq.len()
             };
-            let mut st = self.mindex[i];
-            while st <  self.mindex[i+1] {
+            let mut en = if self.mindex[pos] + self.llen < lindex  {
+                self.mindex[pos] + self.llen
+            }else{
+                lindex
+            };
+            let mut st = self.mindex[pos];
+            while st <  lindex {
                 writer.write_all(&self.seq[st..en]).unwrap();  // need to fx this
                 writer.write(b"\n").unwrap();                  // need to fx this
                 st = en;
-                en = if st + self.llen < self.mindex[i+1] {
+                en = if st + self.llen < lindex {
                     st + self.llen
                 }else{
-                    self.mindex[i+1]
+                    lindex
                 };
             }
         }
@@ -167,6 +159,9 @@ impl  SeqLiteDb
 
     fn fastq_dw<W: Write> (&self, mut writer:  W)   -> Result<bool,Error>  {
 
+
+        // fix this i does not work for rand and other records
+        // move this into fastq
         for i in 0..self.qres.len()-1 {
             writeln!(writer, "{}", self.head[i]).unwrap();
             let mut en = self.mindex[i+1];
@@ -285,7 +280,7 @@ impl IO for SeqLiteDb{
 */
     fn download(&self, file: &str) -> Result<bool,Error>{
 
-        let mut writer = make_writer(file);
+        let writer = make_writer(file);
 
         match &self.format[..] {
             "fasta" => {
@@ -321,50 +316,51 @@ impl IO for SeqLiteDb{
 
 //Query trait
 
-pub trait Query {
-    // select conditions:
-    //  a) rand(10)
-    //  b) max(len|lcp)
-    //  c) min(len|lcp)
-    //  d) pos_list(1,2,52,5,33,67,322,4,56)
-    //  e) id_list(brca, M12, ssb, TP53)
-    //  f) regex(regEx(.*?)\t)
+pub trait Queries {
     fn select (&mut self, condition: String)-> &mut Self ;
-    fn get (&mut self) -> &mut Self;
+//    fn get (&self) -> Vec<usize>;
+//    fn delete(&mut self)->&mut Self;
+//    fn set(&mut self)-> &mut Self;
+//    fn update(&mut self)-> &mut Self;
+
 //    fn parse(exp: String)-> Result<(String,Vec<usize>),Error>;
 }
 
-// Shrink trait
 
 
-impl Query for SeqLiteDb {
+impl Queries for SeqLiteDb {
 
     fn select (&mut self, condition: String) -> &mut Self {
 
         match &condition[..] {
             "all" => {
-                let mut all = vec![0; self.id.len()];
-                for i in 0..self.id.len() {
-                    all[i] = i;
-                }
-                self.qres = all;
+                self.seq_select_all();
             },
             _     => {
-                //let (f,val): (String,Vec<usize>) = self.parse("all(xx)".to_string()).unwrap();
+                let (func,val) :(String,Vec<usize>) = self.parse_condition(condition).unwrap();
+                match &func[..] {
+                    "rand" => {
+                        self.seq_select_rand(val[0]);
+                    },
+                    "max"  => {
+
+                    },
+                    "min"  => {
+
+                    },
+                    "list" => {
+
+                    },
+                    _      => {
+                        panic!("Condition not recognized!")
+                    }
+                }
             }
-
-
         }
-
-
         self
 
     }
-    fn get (&mut self) ->  &mut Self {
 
-        self
-
-    }
     /*
     fn parse(exp: String)-> Result<(String,Vec<usize>),Error>{
 
