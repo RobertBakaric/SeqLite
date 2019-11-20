@@ -53,8 +53,8 @@ impl SeqLiteDb {
         }
         all.shuffle(&mut rng);
 
-        let vec: Vec<usize> = all[..num+1].to_vec();
-        println!("{:?}", vec);
+        let vec: Vec<usize> = all[..num].to_vec();
+        //println!("{:?}", vec);
         self.qres = vec;
 
         self

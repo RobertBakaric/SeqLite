@@ -25,4 +25,35 @@ impl SeqLiteDb{
         Ok(true)
     }
 
+    pub(crate)fn fasta_dw<W: Write> (&self, mut writer:  W)  -> Result<bool,Error>  {
+
+        for pos in self.qres.clone().into_iter() {
+            writeln!(writer, "{}", self.head[pos]).unwrap();
+            let lindex = if pos < self.mindex.len()-1{
+                self.mindex[pos+1]
+            }else{
+                self.seq.len()
+            };
+            let mut en = if self.mindex[pos] + self.llen < lindex  {
+                self.mindex[pos] + self.llen
+            }else{
+                lindex
+            };
+            let mut st = self.mindex[pos];
+            while st <  lindex {
+                writer.write_all(&self.seq[st..en]).unwrap();  // need to fx this
+                writer.write(b"\n").unwrap();                  // need to fx this
+                st = en;
+                en = if st + self.llen < lindex {
+                    st + self.llen
+                }else{
+                    lindex
+                };
+            }
+        }
+        writer.flush().unwrap();
+        Ok(true)
+    }
+
+
 }

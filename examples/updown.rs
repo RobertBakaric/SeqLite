@@ -52,16 +52,18 @@ Testing Upload/Download !!
 fn main(){
 
     let cli = parse_cli();
-    println!("in:  {}",cli.value_of("input").unwrap());
+    println!("{:#?}",cli);
+
     let mut sdb = SeqLiteDb::new(cli.value_of("fformat").unwrap())
-//        .set_llen(60)
+        .set_llen(60)
         .upload(cli.value_of("input").unwrap());
 
     //sdb.set_llen(60);
     // u will only download or get
     sdb.select("all".to_string()).download(cli.value_of("output").unwrap()).unwrap();
 
-    sdb.select("all".to_string()).download("stdout").unwrap();
+
+    //sdb.select("rand(2)".to_string()).download("stdout").unwrap();
 
 /*
     if let Ok(true) = sdb.download(cli.value_of("output").unwrap()){
