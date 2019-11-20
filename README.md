@@ -7,3 +7,22 @@ SeqLite is yet another ultra-fast  fast(a/q)  key-value stores with a support fo
 ## Copyright
 
 Robert Bakaric <robertbakaric@zoho.com>
+
+
+## Project Status
+
+- [x] Implement fasta read/write
+- [x] Implement fastq read/write
+- [ ] Implement raw read/write
+- [ ] Implement select()  
+- [ ] Implement get()
+- [ ] Implement delete()
+- [ ] Implement update()
+- [x] Implement rand(X)
+- [ ] Implement max(len)
+- [ ] Implement min(len)
+- [ ] Implement list(1,2,3)
+- [ ] Implement regex((.*?))
+- [ ] Implement tests
+- [x] Implement io handlers
+- [ ] Implement error handlers
