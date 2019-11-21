@@ -84,32 +84,50 @@ impl  SeqLiteDb
     }
 
 }
-/*
-    fn bin_up<R: BufRead>(&mut self,  reader:  R ) -> Result<bool,Error> {
-
-        // check if bin
-
-        for line in reader.lines() {
-            let str = line.unwrap();
-            self.seq.extend(str.as_bytes());
-        }
-        Ok(true)
-    }set
-*/
-
-
-
-
 
 
 // Traits
 
 pub trait IO{
-    fn upload  (self, file: &str)-> Self;
-    fn download (&self, file: &str)-> Result<bool,Error>;
+    fn recload  ( self, record: &str)-> Self;
+    fn upload   ( self, file: &str)  -> Self;
+    fn download (&self, file: &str)  -> Result<bool,Error>;
 }
 
 impl IO for SeqLiteDb{
+
+    fn recload (mut self, record: &str)->Self{
+
+        let reader = record.as_bytes();
+
+        match &self.format[..] {
+            "fasta" => {
+
+                if let  Ok(true) = self.fasta_up(reader) {
+                    println!("fasta record uploaded !");
+                };
+
+            },
+            "fastq" => {
+
+                if let Ok(true) = self.fastq_up(reader) {
+                    println!("fastq record uploaded !");
+                };
+
+            },
+            "raw"   => {
+
+                if let Ok(true) = self.txt_up(reader) {
+                    println!("raw record uploaded !");
+                };
+
+            }
+            _        => {
+                panic!("Format {} not supported !", self.format)
+            }
+        }
+        self
+    }
 
     fn upload(mut self, file: &str)->Self{
 
@@ -179,17 +197,17 @@ impl IO for SeqLiteDb{
         }
         Ok(true)
     }
-
-
 }
 
 
 
 pub trait Getters {
-    fn get_head   (&self) -> Result<Vec<String>,Error>;
-    fn get_seq    (&self) -> Result<Vec<String>,Error>;
-    fn get_qual   (&self) -> Result<Vec<String>,Error>;
-    fn get_rid    (&self) -> Result<Vec<String>,Error>;
+    fn get_head    (&self) -> Result<Vec<String>,Error>;
+    fn get_seq     (&self) -> Result<Vec<String>,Error>;
+    fn get_qual    (&self) -> Result<Vec<String>,Error>;
+    fn get_rid     (&self) -> Result<Vec<String>,Error>;
+    fn get_seq_raw (&self) -> Result<Vec<u8>,Error>;
+    fn get_qual_raw(&self) -> Result<Vec<u8>,Error>;
 //    fn get_record (&self) -> Result<Vec<T>,Error>; //  set T to be a struct
 
 }
@@ -218,6 +236,16 @@ impl Getters  for SeqLiteDb{
         }
 
     }
+    fn get_seq_raw (&self) -> Result<Vec<u8>,Error>{
+        match &self.format[..] {
+            "fasta" | "fastq" | "raw" => {
+                self.get_seq_raw_vec()
+            },
+            _                  => {
+                panic!("Sequence can only be obtained for : [fa,fq,txt] file formats ")
+            }
+        }
+    }
     fn get_qual (&self) -> Result<Vec<String>,Error>{
         match &self.format[..] {
             "fastq" => {
@@ -227,59 +255,11 @@ impl Getters  for SeqLiteDb{
                 panic!("Quality can only be obtained for : [fq] file formats ")
             }
         }
-
     }
-    fn get_rid (&self) -> Result<Vec<String>,Error>{
-        match &self.format[..] {
-            "fasta" | "fastq" => {
-                self.get_rid()
-            },
-            _                  => {
-                panic!("Record identifier can only be obtained for : [fa,fq] file formats ")
-            }
-        }
-    }
-}
-
-
-
-// hm is this smart ?
-pub trait Loaders {
-    fn load_head   (&self) -> Result<Vec<String>,Error>;
-    fn load_seq    (&self) -> Result<Vec<String>,Error>;
-    fn load_qual   (&self) -> Result<Vec<String>,Error>;
-    fn load_rid    (&self) -> Result<Vec<String>,Error>;
-//    fn load_record (&self) -> Result<Vec<T>,Error>; //  set T to be a struct
-}
-
-
-impl Loaders  for SeqLiteDb{
-
-    fn load_head (&self) -> Result<Vec<String>,Error>{
-        match &self.format[..] {
-            "fasta" | "fastq" => {
-                self.get_head()
-            },
-            _                  => {
-                panic!("Header can only be obtained for : [fa,fq] file formats ")
-            }
-        }
-    }
-    fn get_seq (&self) -> Result<Vec<String>,Error>{
-        match &self.format[..] {
-            "fasta" | "fastq" | "raw" => {
-                self.get_seq()
-            },
-            _                  => {
-                panic!("Sequence can only be obtained for : [fa,fq,txt] file formats ")
-            }
-        }
-
-    }
-    fn get_qual (&self) -> Result<Vec<String>,Error>{
+    fn get_qual_raw (&self) -> Result<Vec<u8>,Error>{
         match &self.format[..] {
             "fastq" => {
-                self.get_qual()
+                self.get_qual_raw_vec()
             },
             _                  => {
                 panic!("Quality can only be obtained for : [fq] file formats ")
