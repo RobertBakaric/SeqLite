@@ -241,6 +241,67 @@ impl Getters  for SeqLiteDb{
     }
 }
 
+
+
+// hm is this smart ?
+pub trait Loaders {
+    fn load_head   (&self) -> Result<Vec<String>,Error>;
+    fn load_seq    (&self) -> Result<Vec<String>,Error>;
+    fn load_qual   (&self) -> Result<Vec<String>,Error>;
+    fn load_rid    (&self) -> Result<Vec<String>,Error>;
+//    fn load_record (&self) -> Result<Vec<T>,Error>; //  set T to be a struct
+}
+
+
+impl Loaders  for SeqLiteDb{
+
+    fn load_head (&self) -> Result<Vec<String>,Error>{
+        match &self.format[..] {
+            "fasta" | "fastq" => {
+                self.get_head()
+            },
+            _                  => {
+                panic!("Header can only be obtained for : [fa,fq] file formats ")
+            }
+        }
+    }
+    fn get_seq (&self) -> Result<Vec<String>,Error>{
+        match &self.format[..] {
+            "fasta" | "fastq" | "raw" => {
+                self.get_seq()
+            },
+            _                  => {
+                panic!("Sequence can only be obtained for : [fa,fq,txt] file formats ")
+            }
+        }
+
+    }
+    fn get_qual (&self) -> Result<Vec<String>,Error>{
+        match &self.format[..] {
+            "fastq" => {
+                self.get_qual()
+            },
+            _                  => {
+                panic!("Quality can only be obtained for : [fq] file formats ")
+            }
+        }
+
+    }
+    fn get_rid (&self) -> Result<Vec<String>,Error>{
+        match &self.format[..] {
+            "fasta" | "fastq" => {
+                self.get_rid()
+            },
+            _                  => {
+                panic!("Record identifier can only be obtained for : [fa,fq] file formats ")
+            }
+        }
+    }
+}
+
+
+
+
 //Query trait
 
 pub trait Queries {
@@ -287,10 +348,7 @@ impl Queries for SeqLiteDb {
             }
         }
         self
-
     }
-
-
 }
 
 
