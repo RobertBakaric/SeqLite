@@ -13,9 +13,10 @@ Robert Bakaric <robertbakaric@zoho.com>
 
 - [x] Implement fasta read/write
 - [x] Implement fastq read/write
-- [ ] Implement raw read/write
-- [ ] Implement select()  
-- [ ] Implement get()
+- [x] Implement raw read/write
+- [x] Implement select()  
+- [x] Implement get()
+- [ ] Implement add()
 - [ ] Implement delete()
 - [ ] Implement update()
 - [x] Implement rand(X)
