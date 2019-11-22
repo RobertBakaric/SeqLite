@@ -65,7 +65,7 @@ impl  SeqLiteDb
             findex: Vec::new(),
             format: typ,
             llen:   80,
-            getter: "".to_strinaddg(),
+            getter: "".to_string(),
             qres:   Vec::new(),
         }
     }
@@ -93,7 +93,6 @@ pub trait IO{
     /// input output -> direct
     fn add         (&mut self, record: &str)->&mut Self;
 //    fn get         (&self) -> Result<Vec<Record>,Error>;
-
 
     fn get_head    (&self) -> Result<Vec<String>,Error>;
     fn get_seq     (&self) -> Result<Vec<String>,Error>;
@@ -333,51 +332,5 @@ impl Queries for SeqLiteDb {
     }
 }
 
-
 #[cfg(test)]
-mod tests {
-    #[test]
-    fn test_recload() {
-        use crate::IO;
-        use crate::Queries;
-        use std::str::from_utf8;
-        //use crate::SeqLiteDb;
-
-
-        let record ="@SRR8374 vcndjvn/1\n\
-                    ATGTCGTGCAGACGTGCCCCCCCCT\n\
-                    +\n\
-                    #$%#$%#$%%%$$&$$%&&/&/%%$\n\
-                    @SRR8374654 vcn/2\n\
-                    ATGTCGTGCAGACAAAGTGCCCCCCCCT\n\
-                    +\n\
-                    #$%#$%#$%%&/////&$$%&&/&/%%$\n\
-                    @SRR8374654 vcn/2\n\
-                    ATGTCGTGCAGACAAAGTGCCCCCCCCT\n\
-                    +\n\
-                    #$%#$%#$%%&/////&$$%&&/&/%%$\n".to_string();
-
-        let mut sdb = crate::SeqLiteDb::new("fastq");
-        sdb.recload(&record).select("rand(3)".to_string());
-    //    println!("{:#?}", sdb);
-
-
-        assert_eq!(sdb.get_head().unwrap()[0],sdb.head[0]);
-        println!("{:#?}::{:?}",sdb.get_seq().unwrap()[0],  from_utf8(&sdb.seq[0..25]).unwrap() );
-        assert_eq!(sdb.get_seq().unwrap()[0],from_utf8(&sdb.seq[0..24]).unwrap());
-
-/*
-        let res_s = sdb.get_seq();
-
-        println!("{:?}", res_s);
-
-        let res_q = sdb.get_qual();
-
-        println!("{:?}", res_q);
-
-        let res_i = sdb.get_rid();
-
-        println!("{:?}", res_i);
-    */
-    }
-}
+mod tests;
