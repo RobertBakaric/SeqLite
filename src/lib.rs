@@ -65,7 +65,7 @@ impl  SeqLiteDb
             findex: Vec::new(),
             format: typ,
             llen:   80,
-            getter: "".to_string(),
+            getter: "".to_strinaddg(),
             qres:   Vec::new(),
         }
     }
@@ -89,14 +89,28 @@ impl  SeqLiteDb
 // Traits
 
 pub trait IO{
-    fn recload  ( self, record: &str)-> Self;
+
+    /// input output -> direct
+    fn add         (&mut self, record: &str)->&mut Self;
+//    fn get         (&self) -> Result<Vec<Record>,Error>;
+
+
+    fn get_head    (&self) -> Result<Vec<String>,Error>;
+    fn get_seq     (&self) -> Result<Vec<String>,Error>;
+    fn get_qual    (&self) -> Result<Vec<String>,Error>;
+    fn get_rid     (&self) -> Result<Vec<String>,Error>;
+
+    fn dump_seq    (&self) ->  Result<Vec<u8>,Error>;
+    fn dump_qual   (&self) ->  Result<Vec<u8>,Error>;
+
+    /// input output -> from file
     fn upload   ( self, file: &str)  -> Self;
     fn download (&self, file: &str)  -> Result<bool,Error>;
 }
 
 impl IO for SeqLiteDb{
 
-    fn recload (mut self, record: &str)->Self{
+    fn add (&mut self, record: &str)-> &mut Self{
 
         let reader = record.as_bytes();
 
@@ -197,23 +211,6 @@ impl IO for SeqLiteDb{
         }
         Ok(true)
     }
-}
-
-
-
-pub trait Getters {
-    fn get_head    (&self) -> Result<Vec<String>,Error>;
-    fn get_seq     (&self) -> Result<Vec<String>,Error>;
-    fn get_qual    (&self) -> Result<Vec<String>,Error>;
-    fn get_rid     (&self) -> Result<Vec<String>,Error>;
-    fn get_seq_raw (&self) -> Result<Vec<u8>,Error>;
-    fn get_qual_raw(&self) -> Result<Vec<u8>,Error>;
-//    fn get_record (&self) -> Result<Vec<T>,Error>; //  set T to be a struct
-
-}
-
-
-impl Getters  for SeqLiteDb{
 
     fn get_head (&self) -> Result<Vec<String>,Error>{
         match &self.format[..] {
@@ -225,6 +222,7 @@ impl Getters  for SeqLiteDb{
             }
         }
     }
+
     fn get_seq (&self) -> Result<Vec<String>,Error>{
         match &self.format[..] {
             "fasta" | "fastq" | "raw" => {
@@ -236,16 +234,18 @@ impl Getters  for SeqLiteDb{
         }
 
     }
-    fn get_seq_raw (&self) -> Result<Vec<u8>,Error>{
+
+    fn dump_seq (&self) -> Result<Vec<u8>,Error>{
         match &self.format[..] {
             "fasta" | "fastq" | "raw" => {
-                self.get_seq_raw_vec()
+                self.get_seq_vec()
             },
             _                  => {
                 panic!("Sequence can only be obtained for : [fa,fq,txt] file formats ")
             }
         }
     }
+
     fn get_qual (&self) -> Result<Vec<String>,Error>{
         match &self.format[..] {
             "fastq" => {
@@ -256,10 +256,11 @@ impl Getters  for SeqLiteDb{
             }
         }
     }
-    fn get_qual_raw (&self) -> Result<Vec<u8>,Error>{
+
+    fn dump_qual (&self) -> Result<Vec<u8>,Error>{
         match &self.format[..] {
             "fastq" => {
-                self.get_qual_raw_vec()
+                self.get_qual_vec()
             },
             _                  => {
                 panic!("Quality can only be obtained for : [fq] file formats ")
@@ -267,6 +268,7 @@ impl Getters  for SeqLiteDb{
         }
 
     }
+
     fn get_rid (&self) -> Result<Vec<String>,Error>{
         match &self.format[..] {
             "fasta" | "fastq" => {
@@ -335,7 +337,47 @@ impl Queries for SeqLiteDb {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
+    fn test_recload() {
+        use crate::IO;
+        use crate::Queries;
+        use std::str::from_utf8;
+        //use crate::SeqLiteDb;
+
+
+        let record ="@SRR8374 vcndjvn/1\n\
+                    ATGTCGTGCAGACGTGCCCCCCCCT\n\
+                    +\n\
+                    #$%#$%#$%%%$$&$$%&&/&/%%$\n\
+                    @SRR8374654 vcn/2\n\
+                    ATGTCGTGCAGACAAAGTGCCCCCCCCT\n\
+                    +\n\
+                    #$%#$%#$%%&/////&$$%&&/&/%%$\n\
+                    @SRR8374654 vcn/2\n\
+                    ATGTCGTGCAGACAAAGTGCCCCCCCCT\n\
+                    +\n\
+                    #$%#$%#$%%&/////&$$%&&/&/%%$\n".to_string();
+
+        let mut sdb = crate::SeqLiteDb::new("fastq");
+        sdb.recload(&record).select("rand(3)".to_string());
+    //    println!("{:#?}", sdb);
+
+
+        assert_eq!(sdb.get_head().unwrap()[0],sdb.head[0]);
+        println!("{:#?}::{:?}",sdb.get_seq().unwrap()[0],  from_utf8(&sdb.seq[0..25]).unwrap() );
+        assert_eq!(sdb.get_seq().unwrap()[0],from_utf8(&sdb.seq[0..24]).unwrap());
+
+/*
+        let res_s = sdb.get_seq();
+
+        println!("{:?}", res_s);
+
+        let res_q = sdb.get_qual();
+
+        println!("{:?}", res_q);
+
+        let res_i = sdb.get_rid();
+
+        println!("{:?}", res_i);
+    */
     }
 }

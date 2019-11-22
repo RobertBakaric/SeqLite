@@ -14,9 +14,10 @@ Robert Bakaric <robertbakaric@zoho.com>
 - [x] Implement fasta read/write
 - [x] Implement fastq read/write
 - [x] Implement raw read/write
-- [x] Implement select()  
+- [x] Implement select()
+- [x] Implement db dumpers for seq qual and all
 - [x] Implement get()
-- [ ] Implement add()
+- [x] Implement add()
 - [ ] Implement delete()
 - [ ] Implement update()
 - [x] Implement rand(X)
@@ -24,6 +25,6 @@ Robert Bakaric <robertbakaric@zoho.com>
 - [ ] Implement min(len)
 - [ ] Implement list(1,2,3)
 - [ ] Implement regex((.*?))
-- [ ] Implement tests
+- [ ] Implement tests 5%
 - [x] Implement io handlers
 - [ ] Implement error handlers
