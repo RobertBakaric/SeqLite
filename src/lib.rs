@@ -1,6 +1,10 @@
 mod utils;
-mod cmds;
+mod cmd;
 mod uldl;
+mod pack;
+
+#[cfg(test)]
+mod tests;
 
 
 use std::collections::HashMap;
@@ -91,13 +95,13 @@ impl  SeqLiteDb
 pub trait IO{
 
     /// input output -> direct
-    fn add         (&mut self, record: &str)->&mut Self;
-//    fn get         (&self) -> Result<Vec<Record>,Error>;
+    fn import         (&mut self, record: &str)->&mut Self;
+//    fn export         (&self) -> Result<Vec<Record>,Error>;
 
-    fn get_head    (&self) -> Result<Vec<String>,Error>;
-    fn get_seq     (&self) -> Result<Vec<String>,Error>;
-    fn get_qual    (&self) -> Result<Vec<String>,Error>;
-    fn get_rid     (&self) -> Result<Vec<String>,Error>;
+    fn export_head    (&self) -> Result<Vec<String>,Error>;
+    fn export_seq     (&self) -> Result<Vec<String>,Error>;
+    fn export_qual    (&self) -> Result<Vec<String>,Error>;
+    fn export_rid     (&self) -> Result<Vec<String>,Error>;
 
     fn dump_seq    (&self) ->  Result<Vec<u8>,Error>;
     fn dump_qual   (&self) ->  Result<Vec<u8>,Error>;
@@ -109,7 +113,7 @@ pub trait IO{
 
 impl IO for SeqLiteDb{
 
-    fn add (&mut self, record: &str)-> &mut Self{
+    fn import (&mut self, record: &str)-> &mut Self{
 
         let reader = record.as_bytes();
 
@@ -211,10 +215,10 @@ impl IO for SeqLiteDb{
         Ok(true)
     }
 
-    fn get_head (&self) -> Result<Vec<String>,Error>{
+    fn export_head (&self) -> Result<Vec<String>,Error>{
         match &self.format[..] {
             "fasta" | "fastq" => {
-                self.get_head()
+                self.export_head()
             },
             _                  => {
                 panic!("Header can only be obtained for : [fa,fq] file formats ")
@@ -222,10 +226,10 @@ impl IO for SeqLiteDb{
         }
     }
 
-    fn get_seq (&self) -> Result<Vec<String>,Error>{
+    fn export_seq (&self) -> Result<Vec<String>,Error>{
         match &self.format[..] {
             "fasta" | "fastq" | "raw" => {
-                self.get_seq()
+                self.export_seq()
             },
             _                  => {
                 panic!("Sequence can only be obtained for : [fa,fq,txt] file formats ")
@@ -237,7 +241,7 @@ impl IO for SeqLiteDb{
     fn dump_seq (&self) -> Result<Vec<u8>,Error>{
         match &self.format[..] {
             "fasta" | "fastq" | "raw" => {
-                self.get_seq_vec()
+                self.export_seq_vec()
             },
             _                  => {
                 panic!("Sequence can only be obtained for : [fa,fq,txt] file formats ")
@@ -245,10 +249,10 @@ impl IO for SeqLiteDb{
         }
     }
 
-    fn get_qual (&self) -> Result<Vec<String>,Error>{
+    fn export_qual (&self) -> Result<Vec<String>,Error>{
         match &self.format[..] {
             "fastq" => {
-                self.get_qual()
+                self.export_qual()
             },
             _                  => {
                 panic!("Quality can only be obtained for : [fq] file formats ")
@@ -259,7 +263,7 @@ impl IO for SeqLiteDb{
     fn dump_qual (&self) -> Result<Vec<u8>,Error>{
         match &self.format[..] {
             "fastq" => {
-                self.get_qual_vec()
+                self.export_qual_vec()
             },
             _                  => {
                 panic!("Quality can only be obtained for : [fq] file formats ")
@@ -268,10 +272,10 @@ impl IO for SeqLiteDb{
 
     }
 
-    fn get_rid (&self) -> Result<Vec<String>,Error>{
+    fn export_rid (&self) -> Result<Vec<String>,Error>{
         match &self.format[..] {
             "fasta" | "fastq" => {
-                self.get_rid()
+                self.export_rid()
             },
             _                  => {
                 panic!("Record identifier can only be obtained for : [fa,fq] file formats ")
@@ -331,6 +335,3 @@ impl Queries for SeqLiteDb {
         self
     }
 }
-
-#[cfg(test)]
-mod tests;
