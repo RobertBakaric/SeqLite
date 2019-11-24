@@ -15,16 +15,29 @@ Robert Bakaric <robertbakaric@zoho.com>
 - [x] Implement fastq read/write
 - [x] Implement raw read/write
 - [x] Implement select()
-- [x] Implement db dumpers for seq qual and all
-- [x] Implement get()
-- [x] Implement add()
-- [ ] Implement delete()
+- [x] Implement db dumpers for "seq", "qual" and "all"
+- [x] Implement export()                       <- 24.11
+- [x] Implement import()
+- [ ] Implement delete()                       <- 24.11
 - [ ] Implement update()
 - [x] Implement rand(X)
-- [ ] Implement max(len)
-- [ ] Implement min(len)
-- [ ] Implement list(1,2,3)
-- [ ] Implement regex((.*?))
-- [ ] Implement tests 5%
+- [ ] Implement max/min(len|lcp)   
+- [ ] Implement list(1,2,3)                    <- 24.11
+- [ ] Implement regex((.*?))                   <- continuous
+- [x] Implement tests 6/72
 - [x] Implement io handlers
 - [ ] Implement error handlers
+- [x] Implement (un)pack for dna
+- [ ] Implement (un)pack for quality scores
+- [ ] Implement (un)pack for fa
+- [ ] Implement (un)pack for txt
+
+- [x] Write CLI app for SeqLite (SeqApp)       <- 24.11
+- [ ] Write Server for SeqLite (SeqServer)
+- [ ] Write Client for SeqLite (SeqClient)
+
+to do for tommorow:
+
+- implement get for full records
+- implement delete
+- implement update
