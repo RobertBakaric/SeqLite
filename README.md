@@ -31,7 +31,6 @@ Robert Bakaric <robertbakaric@zoho.com>
 - [ ] Implement (un)pack for quality scores
 - [ ] Implement (un)pack for fa
 - [ ] Implement (un)pack for txt
-
 - [x] Write CLI app for SeqLite (SeqApp)       <- 24.11
 - [ ] Write Server for SeqLite (SeqServer)
 - [ ] Write Client for SeqLite (SeqClient)
