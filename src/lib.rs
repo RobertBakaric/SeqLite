@@ -45,7 +45,7 @@ pub struct SeqLiteDb  {
     format: String,
     llen:   usize,
     getter: String,
-    qres:   Vec<usize>
+    qres:   Vec<usize>,
 }
 
 
@@ -290,9 +290,9 @@ impl IO for SeqLiteDb{
 //Query trait
 
 pub trait Queries {
-    fn select (&mut self, condition: String)-> &mut Self ;
 
-//    fn delete(&mut self)->&mut Self;
+    fn select (&mut self, condition: String)-> &mut Self ;
+    fn delete(&mut self)->&mut Self;
 //    fn insert(&mut self)-> &mut Self;
 //    fn update(&mut self)-> &mut Self;
 
@@ -332,6 +332,12 @@ impl Queries for SeqLiteDb {
                 }
             }
         }
+        self
+    }
+
+    fn delete(&mut self) -> &mut Self{
+
+        self.delete_data();
         self
     }
 }
