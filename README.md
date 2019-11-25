@@ -18,13 +18,13 @@ Robert Bakaric <robertbakaric@zoho.com>
 - [x] Implement db dumpers for "seq", "qual" and "all"
 - [x] Implement export()                       <- 24.11
 - [x] Implement import()
-- [ ] Implement delete()                       <- 24.11
+- [x] Implement delete()                       <- 24.11
 - [ ] Implement update()
 - [x] Implement rand(X)
-- [ ] Implement max/min(len|lcp)   
+- [x] Implement max/min(X)                     <- 24.11
 - [ ] Implement list(1,2,3)                    <- 24.11
 - [ ] Implement regex((.*?))                   <- continuous
-- [x] Implement tests 6/72
+- [x] Implement tests 8/72
 - [x] Implement io handlers
 - [ ] Implement error handlers
 - [x] Implement (un)pack for dna
@@ -34,9 +34,3 @@ Robert Bakaric <robertbakaric@zoho.com>
 - [x] Write CLI app for SeqLite (SeqApp)       <- 24.11
 - [ ] Write Server for SeqLite (SeqServer)
 - [ ] Write Client for SeqLite (SeqClient)
-
-to do for tommorow:
-
-- implement get for full records
-- implement delete
-- implement update
