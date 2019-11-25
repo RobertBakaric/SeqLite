@@ -60,17 +60,95 @@ impl SeqLiteDb {
         self
     }
 
-    pub(crate) fn seq_select_min (&mut self, len: usize) -> &mut Self {
+    pub(crate) fn seq_select_min (&mut self, n: usize) -> &mut Self {
+
+        let mut bottomx : Vec<usize> = Vec::with_capacity(n);
+
+        for i in self.mindex.clone().into_iter(){
+            bottomx.push(i);
+            let mut j = bottomx.len() - 1;
+            while j > 0 {
+                if bottomx[j] > bottomx[j-1] {
+                    break;
+                }
+
+                let t = bottomx[j];
+                bottomx[j] = bottomx[j-1];
+                bottomx[j-1] = t;
+
+                j = j - 1;
+            }
+            if  bottomx.len() > n {
+                bottomx.pop();
+            }
+        }
+        self.qres = bottomx;
+
         self
     }
 
-    pub(crate) fn seq_select_max (&mut self, len: usize ) -> &mut Self {
+    pub(crate) fn seq_select_max (&mut self, n: usize ) -> &mut Self {
+
+        let mut topx : Vec<usize> = Vec::with_capacity(n);
+
+        for i in self.mindex.clone().into_iter(){
+            topx.push(i);
+            let mut j = topx.len() - 1;
+            while j > 0 {
+                if topx[j] < topx[j-1] {
+                    break;
+                }
+
+                let t = topx[j];
+                topx[j] = topx[j-1];
+                topx[j-1] = t;
+
+                j = j - 1;
+            }
+            if  topx.len() > n {
+                topx.pop();
+            }
+        }
+        self.qres = topx;
         self
     }
 
     pub(crate) fn seq_select_list<T> (&mut self, condition: Vec<T>) -> &mut Self {
+
         self
     }
+}
 
+
+
+
+
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn select_min() {
+        assert!(2>3, "Test Missing");
+    }
+    #[test]
+    fn select_max() {
+        assert!(2>3, "Test Missing");
+    }
+    #[test]
+    fn select_rand() {
+        assert!(2>3, "Test Missing");
+    }
+    #[test]
+    fn select_list() {
+        assert!(2>3, "Test Missing");
+    }
+    #[test]
+    fn select_all() {
+        assert!(2>3, "Test Missing");
+    }
+    #[test]
+    fn select_regex() {
+        assert!(2>3, "Test Missing");
+    }
 
 }
