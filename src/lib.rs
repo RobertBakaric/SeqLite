@@ -64,7 +64,7 @@ impl  SeqLiteDb
             id:     Vec::new(),
             seq:    Vec::new(),
             qual:   Vec::new(),
-            rindex: HashMap::new(),  // replace with the faser one
+            rindex: HashMap::new(),  // replace with a faster solution
             mindex: Vec::new(),
             findex: Vec::new(),
             format: typ,
@@ -96,7 +96,7 @@ pub trait IO{
 
     /// input output -> direct
     fn import         (&mut self, record: &str)->&mut Self;
-//    fn export         (&self) -> Result<Vec<Record>,Error>;
+    fn export         (&self) -> Result<Vec<String>,Error>;
 
     fn export_head    (&self) -> Result<Vec<String>,Error>;
     fn export_seq     (&self) -> Result<Vec<String>,Error>;
@@ -140,7 +140,7 @@ impl IO for SeqLiteDb{
 
             }
             _        => {
-                panic!("Format {} not supported !", self.format)
+                panic!("Format {} not supported !", self.format)// this needs to hndld with error manager
             }
         }
         self
@@ -173,7 +173,7 @@ impl IO for SeqLiteDb{
 
             }
             _        => {
-                panic!("Format {} not supported !", self.format)
+                panic!("Format {} not supported !", self.format)// this needs to hndld with error manager
             }
         }
 
@@ -209,7 +209,7 @@ impl IO for SeqLiteDb{
 
             }
             _        => {
-                panic!("Format {} not supported !", self.format)
+                panic!("Format {} not supported !", self.format)// this needs to hndld with error manager
             }
         }
         Ok(true)
@@ -221,7 +221,7 @@ impl IO for SeqLiteDb{
                 self.export_head()
             },
             _                  => {
-                panic!("Header can only be obtained for : [fa,fq] file formats ")
+                panic!("Header can only be obtained for : [fa,fq] file formats ")// this needs to hndld with error manager
             }
         }
     }
@@ -232,7 +232,7 @@ impl IO for SeqLiteDb{
                 self.export_seq()
             },
             _                  => {
-                panic!("Sequence can only be obtained for : [fa,fq,txt] file formats ")
+                panic!("Sequence can only be obtained for : [fa,fq,txt] file formats ")// this needs to hndld with error manager
             }
         }
 
@@ -244,7 +244,7 @@ impl IO for SeqLiteDb{
                 self.export_seq_vec()
             },
             _                  => {
-                panic!("Sequence can only be obtained for : [fa,fq,txt] file formats ")
+                panic!("Sequence can only be obtained for : [fa,fq,txt] file formats ")// this needs to hndld with error manager
             }
         }
     }
@@ -255,7 +255,7 @@ impl IO for SeqLiteDb{
                 self.export_qual()
             },
             _                  => {
-                panic!("Quality can only be obtained for : [fq] file formats ")
+                panic!("Quality can only be obtained for : [fq] file formats ")// this needs to hndld with error manager
             }
         }
     }
@@ -266,7 +266,7 @@ impl IO for SeqLiteDb{
                 self.export_qual_vec()
             },
             _                  => {
-                panic!("Quality can only be obtained for : [fq] file formats ")
+                panic!("Quality can only be obtained for : [fq] file formats ")// this needs to hndld with error manager
             }
         }
 
@@ -278,7 +278,24 @@ impl IO for SeqLiteDb{
                 self.export_rid()
             },
             _                  => {
-                panic!("Record identifier can only be obtained for : [fa,fq] file formats ")
+                panic!("Record identifier can only be obtained for : [fa,fq] file formats ") // this needs to hndld with error manager
+            }
+        }
+    }
+
+    fn export (&self) -> Result<Vec<String>,Error> {
+        match &self.format[..] {
+            "fasta"  => {
+                self.export_fa_rec()
+            },
+            "fastq"  => {
+                self.export_fq_rec()
+            },
+            "raw"    => {
+                self.export_raw_rec()
+            },
+            _        => {
+                panic!("Format not supported!") // this needs to handelet with error manager
             }
         }
     }
@@ -293,7 +310,6 @@ pub trait Queries {
 
     fn select (&mut self, condition: String)-> &mut Self ;
     fn delete(&mut self)->&mut Self;
-//    fn insert(&mut self)-> &mut Self;
 //    fn update(&mut self)-> &mut Self;
 
 }
@@ -315,10 +331,10 @@ impl Queries for SeqLiteDb {
                         self.seq_select_rand(val[0]);
                     },
                     "max"  => {
-                        panic!("Condition not recognized!")
+                        self.seq_select_max(val[0]);
                     },
                     "min"  => {
-                        panic!("Condition not recognized!")
+                        self.seq_select_min(val[0]);
                     },
                     "list" => {
                         panic!("Condition not recognized!")
@@ -327,7 +343,7 @@ impl Queries for SeqLiteDb {
                         panic!("Condition not recognized!")
                     },
                     _      => {
-                        panic!("Condition not recognized!")
+                        panic!("Condition not recognized!") // this needs to handelet with error manager
                     }
                 }
             }

@@ -58,6 +58,38 @@ impl SeqLiteDb{
         Ok(res)
     }
 
+    pub(crate) fn export_fa_rec (&self) -> Result<Vec<String>,Error>{
+
+        let mut res : Vec<String> = Vec::with_capacity(self.qres.len());
+
+        let seq = self.export_seq().unwrap();
+        let head = self.export_head().unwrap();
+        for i in 0..head.len() {
+            res.push([ &head[i][..], "\n",  &seq[i][..] ].concat().clone());
+        }
+
+        Ok(res)
+
+    }
+
+    pub(crate) fn export_fq_rec (&self) -> Result<Vec<String>,Error>{
+
+        let mut res : Vec<String> = Vec::with_capacity(self.qres.len());
+        let head = self.export_head().unwrap();
+        let seq = self.export_seq().unwrap();
+        let qual = self.export_qual().unwrap();
+        for i in 0..head.len() {
+            res.push([ &head[i][..], "\n",  &seq[i][..], "+", &qual[i][..]].concat().clone());
+        }
+
+        Ok(res)
+
+    }
+
+    pub(crate) fn export_raw_rec (&self) -> Result<Vec<String>,Error>{
+        self.export_seq()
+    }
+
     pub(crate) fn export_seq_vec (&self) -> Result<Vec<u8>,Error>{
         Ok(self.seq.clone())
     }
