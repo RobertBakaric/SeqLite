@@ -36,12 +36,13 @@ impl SeqLiteDb{
 
         for pos in self.qres.clone().into_iter() {
             writeln!(writer, "{}", self.head[pos]).unwrap();
-            let en = if pos < self.seq.len() {
+            let st = self.mindex[pos];
+            let en = if pos < self.mindex.len() -1 {
                 self.mindex[pos+1]
             }else{
                 self.seq.len()
             };
-            let st = self.mindex[pos];
+
             writer.write_all(&self.seq[st..en]).unwrap();
             writer.write(b"\n+\n").unwrap();
             writer.write_all(&self.qual[st..en]).unwrap();

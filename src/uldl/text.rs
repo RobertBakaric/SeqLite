@@ -19,7 +19,7 @@ impl SeqLiteDb {
     pub(crate) fn txt_dw<W: Write>  (&self, mut writer:  W)  -> Result<bool,Error> {
 
         for pos in self.qres.clone().into_iter(){
-            let en = if pos < self.seq.len() {
+            let en = if pos < self.seq.len() - 1 {
                 self.mindex[pos+1]
             }else{
                 self.seq.len()
