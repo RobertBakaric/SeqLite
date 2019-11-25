@@ -2,7 +2,7 @@
 
 
     #[test]
-    fn add_fastq() {
+    fn adding_fastq_records() {
         use crate::IO;
         use crate::Queries;
         use std::str::from_utf8;
@@ -21,17 +21,17 @@
                     #$%#$%#$%%&/////&$$%&&/&/%%$\n".to_string();
 
         let mut sdb = crate::SeqLiteDb::new("fastq");
-        sdb.add(&record).select("all".to_string());
+        sdb.import(&record).select("all".to_string());
 
-        assert_eq!(sdb.get_head().unwrap()[0],sdb.head[0]);
-        assert_eq!(sdb.get_seq().unwrap()[0],from_utf8(&sdb.seq[0..25]).unwrap());
-        assert_eq!(sdb.get_qual().unwrap()[1],from_utf8(&sdb.qual[25..53]).unwrap());
-        assert_eq!(sdb.get_rid().unwrap()[2], "SRR8374654".to_string());
+        assert_eq!(sdb.export_head().unwrap()[0],sdb.head[0]);
+        assert_eq!(sdb.export_seq().unwrap()[0],from_utf8(&sdb.seq[0..25]).unwrap());
+        assert_eq!(sdb.export_qual().unwrap()[1],from_utf8(&sdb.qual[25..53]).unwrap());
+        assert_eq!(sdb.export_rid().unwrap()[2], "SRR8374654".to_string());
 
     }
 
     #[test]
-    fn dump_data(){
+    fn dumping_raw_db_records(){
         use crate::IO;
         use crate::Queries;
 
@@ -45,14 +45,14 @@
                     #$%#$%#$%%&/////&$$%&&/&/%%$\n".to_string();
 
         let mut sdb = crate::SeqLiteDb::new("fastq");
-        sdb.add(&record).select("all".to_string());
+        sdb.import(&record).select("all".to_string());
 
         assert_eq!(sdb.dump_seq().unwrap(), b"ATGTCGTGCAGACGTGCCCCCCCCTATGTCGTGCAGACAAAGTGCCCCCCCCT".to_vec());
         assert_eq!(sdb.dump_qual().unwrap(), b"#$%#$%#$%%%$$&$$%&&/&/%%$#$%#$%#$%%&/////&$$%&&/&/%%$".to_vec());
     }
 
     #[test]
-    fn upload_fastq() {
+    fn uploading_fastq_records() {
         use crate::IO;
 
         let sdb = crate::SeqLiteDb::new("fastq");
@@ -61,7 +61,7 @@
     }
 
     #[test]
-    fn download_fastq() {
+    fn downloading_fastq_records() {
         use crate::IO;
         use crate::Queries;
 
@@ -73,7 +73,7 @@
 
 
     #[test]
-    fn add_fasta() {
+    fn adding_fasta_records() {
         use crate::IO;
         use crate::Queries;
         use std::str::from_utf8;
@@ -85,16 +85,16 @@
                     ATGTCGTGCAGACAAAGTGCCCCCCCCT\n".to_string();
 
         let mut sdb = crate::SeqLiteDb::new("fasta");
-        sdb.add(&record).select("all".to_string());
+        sdb.import(&record).select("all".to_string());
 
-        assert_eq!(sdb.get_head().unwrap()[0],sdb.head[0]);
-        assert_eq!(sdb.get_seq().unwrap()[0],from_utf8(&sdb.seq[0..40]).unwrap());
-        assert_eq!(sdb.get_rid().unwrap()[1], "FA8374654".to_string());
+        assert_eq!(sdb.export_head().unwrap()[0],sdb.head[0]);
+        assert_eq!(sdb.export_seq().unwrap()[0],from_utf8(&sdb.seq[0..40]).unwrap());
+        assert_eq!(sdb.export_rid().unwrap()[1], "FA8374654".to_string());
 
     }
 
     #[test]
-    fn upload_fasta() {
+    fn uploading_fasta_records() {
         use crate::IO;
 
         let sdb = crate::SeqLiteDb::new("fasta");
@@ -103,7 +103,7 @@
     }
 
     #[test]
-    fn download_fasta() {
+    fn downloading_fasta_records() {
         use crate::IO;
         use crate::Queries;
 
