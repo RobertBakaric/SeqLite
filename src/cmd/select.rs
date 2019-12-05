@@ -16,21 +16,34 @@ use rand::prelude::*;
 
 impl SeqLiteDb {
 
-    pub(crate) fn parse_condition(&self,text: String) -> Result<(String,Vec<usize>),Error>{
+    pub(crate) fn parse_condition(&self,text: String) -> Result<(String,String),Error>{
 
         let re = Regex::new(r"(\w+)\((.*?)\)").unwrap();
         let cap = re.captures(&text).unwrap();
-        let mut val = cap[2].to_string();
+
+        Ok((cap[1].to_string(),cap[2].to_string()))
+
+    }
+
+    pub(crate) fn parse_list (&self, mut val: String) -> Result<Vec<usize>, Error> {
+
         val.retain(|c| !c.is_whitespace());
 
         let tokens: Vec<usize> = val
             .split(",")
             .map(|token| token.parse::<usize>().unwrap())
             .collect();
-        Ok((cap[1].to_string(),tokens))
-
+        Ok(tokens)
     }
+/*
+    pub(crate) fn parse_regex (&self, mut val: String) -> Result<Vec<usize>, Error> {
 
+
+        let re = Regex::new(r"(\w+)\((.*?)\)").unwrap();
+        let cap = re.captures(&text).unwrap();
+        Ok(tokens)
+    }
+*/
     pub(crate) fn seq_select_all (&mut self) -> &mut Self {
 
         let mut all = vec![0; self.id.len()];
@@ -113,8 +126,9 @@ impl SeqLiteDb {
         self
     }
 
-    pub(crate) fn seq_select_list<T> (&mut self, condition: Vec<T>) -> &mut Self {
+    pub(crate) fn seq_select_list (&mut self, vals: Vec<usize>) -> &mut Self {
 
+        self.qres = vals;
         self
     }
 }
