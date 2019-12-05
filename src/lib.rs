@@ -6,8 +6,8 @@ mod pack;
 #[cfg(test)]
 mod tests;
 
-
-use std::collections::HashMap;
+use fxhash::FxHashMap;
+//use std::collections::HashMap;
 use utils::error::Error;
 //use std::io::{self, prelude::*, stdout, Write, Read, BufReader, BufWriter};
 //use std::fs::File;
@@ -39,7 +39,7 @@ pub struct SeqLiteDb  {
     id:     Vec<String>,    // Strings, str
     seq:    Vec<u8>,     // u8 bitvec
     qual:   Vec<u8>,    // u8 bitvec
-    rindex: HashMap<String, Vec<usize>>, // associate seq with start pos
+    rindex: FxHashMap<String, Vec<usize>>, // associate seq with start pos
     mindex: Vec<usize>,   // where do seqs start
     findex: Vec<usize>,  // on which seq does the next file starts
     format: String,
@@ -64,7 +64,7 @@ impl  SeqLiteDb
             id:     Vec::new(),
             seq:    Vec::new(),
             qual:   Vec::new(),
-            rindex: HashMap::new(),  // replace with a faster solution
+            rindex: FxHashMap::default(),//HashMap::new(),  // replace with a faster solution
             mindex: Vec::new(),
             findex: Vec::new(),
             format: typ,
@@ -309,7 +309,7 @@ impl IO for SeqLiteDb{
 pub trait Queries {
 
     fn select (&mut self, condition: String)-> &mut Self ;
-    fn delete(&mut self)->&mut Self;
+    fn delete (&mut self)->&mut Self;
 //    fn update(&mut self)-> &mut Self;
 
 }
@@ -325,19 +325,20 @@ impl Queries for SeqLiteDb {
                 self.seq_select_all();
             },
             _     => {
-                let (func,val) :(String,Vec<usize>) = self.parse_condition(condition).unwrap();
+
+                let (func,val) :(String,String) = self.parse_condition(condition).unwrap();
                 match &func[..] {
                     "rand" => {
-                        self.seq_select_rand(val[0]);
+                        self.seq_select_rand(val.parse::<usize>().unwrap());
                     },
                     "max"  => {
-                        self.seq_select_max(val[0]);
+                        self.seq_select_max(val.parse::<usize>().unwrap());
                     },
                     "min"  => {
-                        self.seq_select_min(val[0]);
+                        self.seq_select_min(val.parse::<usize>().unwrap());
                     },
                     "list" => {
-                        panic!("Condition not recognized!")
+                        self.seq_select_list(self.parse_list(val).unwrap());
                     },
                     "regex" => {
                         panic!("Condition not recognized!")
